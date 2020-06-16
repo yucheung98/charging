@@ -1,6 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import {CommonService} from '../../service/common.service';
-
+// interface ItemData {
+//   city_name: any;
+//   sum_today_usage: any;
+//   sum_today_amount: any;
+//   sum_today_times: any;
+//   sum_today_dur: any;
+// }
 @Component({
   selector: 'app-usage',
   templateUrl: './usage.component.html',
@@ -17,6 +23,12 @@ export class UsageComponent implements OnInit {
   // tslint:disable-next-line:variable-name
   option_company2: {};
   listOfData: any;
+  dataSetList = [];
+  pageIndex = 1;
+  pageSize = 10;
+  searchData(): void {
+    this.dataSetList = this.listOfData.slice((this.pageIndex - 1) * this.pageSize, (this.pageIndex) * this.pageSize);
+  }
   // 提交按钮，选择公司展示数据
   onSubmitCompany(paramSearch) {
     const company = {level: 'City', company: paramSearch};
@@ -243,9 +255,11 @@ export class UsageComponent implements OnInit {
       .subscribe(
         res => {
           this.listOfData = res.data;
+          this.searchData();
         }
       );
   }
+
   constructor(private commonService: CommonService) { }
 
   ngOnInit() {

@@ -11,14 +11,18 @@
           </div>
 
           <div nz-col class="gutter-row" [nzSpan]="16">
-            <form (submit)="onSubmitDatetime(selectedDatetime)" role="form">
+            <form (submit)="onSubmitDatetime()" role="form">
               <button tabindex="1" nz-button nzType="primary"><i nz-icon nzType="search"></i>查找</button>
             </form>
           </div>
         </div>
       </div>
       <div style="height: 400px">
-        <nz-table #basicTable [nzData]="listOfData">
+        <nz-table #basicTable
+                  [nzData]="listOfData"
+                  [(nzPageIndex)]="pageIndex"
+                  [(nzPageSize)]="pageSize"
+                  (nzPageIndexChange)="searchData()">
           <thead>
           <tr>
             <th>公司</th>
@@ -29,7 +33,7 @@
           </tr>
           </thead>
           <tbody>
-          <tr *ngFor="let data of listOfData">
+          <tr *ngFor="let data of dataSetList">
             <td>{{ data.city_name }}</td>
             <td>{{ data.sum_today_usage.toFixed(3)}}</td>
             <td>{{ data.sum_today_amount }}</td>

@@ -26,11 +26,8 @@
 <!--      </li>-->
      <li nz-submenu nzOpen nzTitle="管理模块" nzIcon="dashboard">
       <ul>
-      <li nz-menu-item nzMatchRouter (click)="newTab('充电桩地图')">
-        <a routerLink="/welcome" (click)="newTab('充电桩地图')">充电桩地图</a>
-      </li>
-        <li nz-menu-item nzMatchRouter (click)="newTab('地图ZOOM IN')">
-          <a routerLink="/zoomin" (click)="newTab('地图ZOOM IN')">地图ZOOM IN</a>
+        <li nz-menu-item nzMatchRouter (click)="newTab('充电站地图')">
+          <a routerLink="/zoomin" (click)="newTab('充电站地图')">充电站地图</a>
         </li>
       <li nz-menu-item nzMatchRouter (click)="newTab('用电信息')">
         <a routerLink="/usage" (click)="newTab('用电信息')" >用电信息</a>
@@ -77,8 +74,7 @@
                 <i nz-icon nzType="close" (click)="closeTab(tab)" class="ant-tabs-close-x"></i>
               </div>
             </ng-template>
-            <app-welcome *ngIf="tab =='充电桩地图'"></app-welcome>
-            <app-zoomin *ngIf="tab =='地图ZOOM IN'"></app-zoomin>
+            <app-zoomin *ngIf="tab =='充电站地图'"></app-zoomin>
             <app-usage *ngIf="tab =='用电信息'"></app-usage>
           </nz-tab>
         </nz-tabset>

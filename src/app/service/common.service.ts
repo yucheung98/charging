@@ -41,4 +41,25 @@ export class CommonService {
     // tslint:disable-next-line:max-line-length
     return this.http.post(city_usageUrl, date, {withCredentials: true, headers: new HttpHeaders({'Content-Type': 'application/json'})});
   }
+  // 返回某供电公司充电站list（静态信息）
+  station_list(param: any): Observable<any> {
+    // tslint:disable-next-line:variable-name
+    const station_listUrl = SERVERADDRESS + '/api/station/list';
+    // tslint:disable-next-line:max-line-length
+    return this.http.post(station_listUrl, param, {withCredentials: true, headers: new HttpHeaders({'Content-Type': 'application/json'})});
+  }
+  // 返回某供电公司充电站用电信息
+  station(param: any): Observable<any> {
+    // tslint:disable-next-line:variable-name
+    const stationUrl = SERVERADDRESS + '/api/data/station';
+    // tslint:disable-next-line:max-line-length
+    return this.http.post(stationUrl, param, {withCredentials: true, headers: new HttpHeaders({'Content-Type': 'application/json'})});
+  }
+  // 返回各供电公司充电站数量
+  station_count(param: any): Observable<any> {
+    // tslint:disable-next-line:variable-name
+    const station_countUrl = SERVERADDRESS + '/api/station/count';
+    // tslint:disable-next-line:max-line-length
+    return this.http.post(station_countUrl, param, {withCredentials: true, headers: new HttpHeaders({'Content-Type': 'application/json'})});
+  }
 }

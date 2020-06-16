@@ -34,12 +34,12 @@ export class AppComponent implements OnInit {
     const hre = window.location.href.split('/');
     console.log(hre[3]);
     if (!hre[3]) {
-      this.tabs.push('充电桩地图');
-      this.router.navigateByUrl('/welcome');
+      this.tabs.push('充电站地图');
+      this.router.navigateByUrl('/zoomin');
     }
     if (hre[3]) {
-      this.tabs.push('充电桩地图');
-      this.router.navigateByUrl('/welcome');
+      this.tabs.push('充电站地图');
+      this.router.navigateByUrl('/zoomin');
     }
   }
 

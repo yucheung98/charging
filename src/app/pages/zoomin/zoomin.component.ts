@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import * as echarts from 'echarts';
 import * as $ from 'jquery';
+import {CommonService} from '../../service/common.service';
 @Component({
   selector: 'app-zoomin',
   templateUrl: './zoomin.component.html',
@@ -8,11 +9,29 @@ import * as $ from 'jquery';
 })
 export class ZoominComponent implements OnInit, AfterViewInit {
   @ViewChild('map', null) map: any;
-  constructor() { }
+  constructor(private commonService: CommonService) { }
 
   ngOnInit() {
   }
   ngAfterViewInit(): void {
+    const _this = this;
+    const count = {沈阳市: 125,
+      大连市: 235,
+      鞍山市: 12,
+      抚顺市: 23,
+      本溪市: 8,
+      丹东市: 7,
+      锦州市: 15,
+      营口市: 11,
+      阜新市: 12,
+      辽阳市: 11,
+      盘锦市: 15,
+      铁岭市: 88,
+      朝阳市: 18,
+      葫芦岛市: 45};
+    const geoCoordMap = [];
+    const data = [];
+    let staticinfo = [];
     const map: any = this.map.nativeElement;
     const liaoning = 'assets/map/json/province/liaoning.json';
     const shenyang = 'assets/map//liaoning/沈阳市.json';
@@ -29,144 +48,295 @@ export class ZoominComponent implements OnInit, AfterViewInit {
     const yingkou = 'assets/map//liaoning/营口市.json';
     const dandong = 'assets/map//liaoning/丹东市.json';
     const dalian = 'assets/map//liaoning/大连市.json';
+    // tslint:disable-next-line:no-shadowed-variable
+    const convertData = function(data) {
+      const res = [];
+      for (let i = 0; i < data.length; i++) {
+        const geoCoord = geoCoordMap[i].cp;
+        // var geoCoord = geoCoordMap[data[i].name];
+        if (geoCoord) {
+          res.push({
+            name: data[i].name,
+            value: geoCoord.concat(data[i].value)
+          });
+        }
+      }
+      console.log(res);
+      return res;
+    };
+
     echarts.extendsMap = function(id, opt) {
       // 实例
-      var chart = echarts.init(map);
+      const chart = echarts.init(map);
 
-      var curGeoJson = {};
-      var cityMap = {
-        "沈阳市": shenyang,
-        "铁岭市": tieling,
-        "抚顺市": fushun,
-        "阜新市": fuxin,
-        "朝阳市": chaoyang,
-        "葫芦岛市": huludao,
-        "锦州市": jinzhou,
-        "盘锦市": panjin,
-        "鞍山市": anshan,
-        "辽阳市": liaoyang,
-        "本溪市": benxi,
-        "营口市": yingkou,
-        "丹东市": dandong,
-        "大连市": dalian
-      };
-      var geoCoordMap = {
-        '沈阳': [123.429096, 41.796767],
-        '大连': [121.618622, 38.91459],
-        '鞍山': [122.995632, 41.110626],
-        '抚顺': [123.921109, 41.875956],
-        '本溪': [123.770519, 41.297909],
-        '丹东': [124.383044, 40.124296],
-        '锦州': [121.135742, 41.119269],
-        '营口': [122.235151, 40.667432],
-        '阜新': [121.648962, 42.011796],
-        '辽阳': [123.18152, 41.269402],
-        '盘锦': [122.06957, 41.124484],
-        '铁岭': [123.844279, 42.290585],
-        '朝阳': [120.451176, 41.576758],
-        '葫芦岛': [120.856394, 40.755572]
-      };
-      var levelColorMap = {
-        '1': 'rgba(241, 109, 115, .8)',
-        '2': 'rgba(255, 235, 59, .7)',
-        '3': 'rgba(147, 235, 248, 1)'
+      let curGeoJson = {};
+      const cityMap = {
+        沈阳市: shenyang,
+        铁岭市: tieling,
+        抚顺市: fushun,
+        阜新市: fuxin,
+        朝阳市: chaoyang,
+        葫芦岛市: huludao,
+        锦州市: jinzhou,
+        盘锦市: panjin,
+        鞍山市: anshan,
+        辽阳市: liaoyang,
+        本溪市: benxi,
+        营口市: yingkou,
+        丹东市: dandong,
+        大连市: dalian
       };
 
-      var defaultOpt = {
+      const levelColorMap = {
+        1: 'rgba(241, 109, 115, .8)',
+        2: 'rgba(255, 235, 59, .7)',
+        3: 'rgba(147, 235, 248, 1)'
+      };
+
+      const defaultOpt = {
         mapName: 'china',     // 地图展示
         goDown: false,        // 是否下钻
         bgColor: '#404a59',   // 画布背景色
         activeArea: [],       // 区域高亮,同echarts配置项
         data: [],
         // 下钻回调(点击的地图名、实例对象option、实例对象)
-        callback: function(name, option, instance){}
+        callback(name, option, instance) {}
       };
-      if(opt) opt = this.util.extend(defaultOpt, opt);
+      if (opt) { opt = this.util.extend(defaultOpt, opt); }
 
       // 层级索引
-      var name = [opt.mapName];
-      var idx = 0;
-      var pos = {
+      const name = [opt.mapName];
+      let idx = 0;
+      const pos = {
         leftPlus: 115,
         leftCur: 150,
         left: 198,
         top: 50
       };
 
-      var line = [[0, 0], [8, 11], [0, 22]];
+      const line = [[0, 0], [8, 11], [0, 22]];
       // style
-      var style = {
+      const style = {
         font: '18px "Microsoft YaHei", sans-serif',
         textColor: '#eee',
         lineColor: 'rgba(147, 235, 248, .8)'
       };
+      const max = 480, min = 9; // todo
+      const maxSize4Pin = 100, minSize4Pin = 40;
 
-      var handleEvents = {
+      const handleEvents = {
         /**
          * i 实例对象
          * o option
          * n 地图名
          **/
-        resetOption: function(i, o, n){
-          var breadcrumb = this.createBreadcrumb(n);
+        resetOption(i, o, n) {
+          console.log(i);
+          console.log(o);
+          console.log(n);
+          const breadcrumb = this.createBreadcrumb(n);
 
-          var j = name.indexOf(n);
-          var l = o.graphic.length;
-          if(j < 0){
+          const j = name.indexOf(n);
+          const l = o.graphic.length;
+          if (j < 0) {
             o.graphic.push(breadcrumb);
             o.graphic[0].children[0].shape.x2 = 145;
             o.graphic[0].children[1].shape.x2 = 145;
-            if(o.graphic.length > 2){
-              for(var x = 0; x < opt.data.length; x++){
-                if(n === opt.data[x].name + '市'){
-                  o.series[0].data = handleEvents.initSeriesData([opt.data[x]]);
-                  break;
-                }else o.series[0].data = [];
-              }
-            };
+            // if (o.graphic.length > 2) {
+            //   for (let x = 0; x < opt.data.length; x++) {
+            //     if (n === opt.data[x].name + '市') {
+            //       o.series[0].data = handleEvents.initSeriesData([opt.data[x]]);
+            //       break;
+            //     } else { o.series[0].data = []; }
+            //   }
+            // }
             name.push(n);
             idx++;
-          }else{
+          } else {
             o.graphic.splice(j + 2, l);
-            if(o.graphic.length <= 2){
+            if (o.graphic.length <= 2) {
               o.graphic[0].children[0].shape.x2 = 60;
               o.graphic[0].children[1].shape.x2 = 60;
-              o.series[0].data = handleEvents.initSeriesData(opt.data);
-            };
+              // o.series[0].data = handleEvents.initSeriesData(opt.data);
+            }
             name.splice(j + 1, l);
             idx = j;
             pos.leftCur -= pos.leftPlus * (l - j - 1);
-          };
-
-          o.geo.map = n;
-          o.geo.zoom = 0.4;
-          i.clear();
-          i.setOption(o);
-          this.zoomAnimation();
-          opt.callback(n, o, i);
+          }
+          if (n === '辽宁') {
+            o.tooltip = {
+              trigger: 'item',
+              formatter(params) {
+                if (typeof (params.value)[2] === 'undefined') {
+                  return '充电站数量' + ' : ' + params.value;
+                } else {
+                  return '充电站数量' + ' : ' + params.value[2];
+                }
+              }
+            };
+            o.series[0] = {
+              name: '点',
+              type: 'scatter',
+              coordinateSystem: 'geo',
+              symbol: 'pin',
+              symbolSize(val) {
+                const a = (maxSize4Pin - minSize4Pin) / (max - min);
+                let b = minSize4Pin - a * min;
+                b = maxSize4Pin - a * max;
+                return a * val[2] + b;
+              },
+              label: {
+                normal: {
+                  formatter: '{@[2]}',
+                  show: true,
+                  textStyle: {
+                    color: '#fff',
+                    fontSize: 9,
+                  }
+                }
+              },
+              itemStyle: {
+                normal: {
+                  color: '#FF86A6', // 标志气泡颜色
+                }
+              },
+              zlevel: 6,
+              data: convertData(data),
+            };
+            o.geo.map = n;
+            o.geo.zoom = 0.4;
+            i.clear();
+            i.setOption(o);
+            this.zoomAnimation();
+            opt.callback(n, o, i);
+          } else {
+            o.series.splice(0, 1);
+            const n_1 = n;
+            const n_2 = n.split('');
+            n_2.splice(-1, 1);
+            let param = {level: 'City', company: '国网' + n_2[0] + n_2[1] + '供电公司'};
+            if (n === '葫芦岛市') {
+              param = {level: 'City', company: '国网' + n_2[0] + n_2[1] + n_2[2] + '供电公司'};
+            }
+            console.log(param);
+            _this.commonService.station_list(param)
+              .subscribe(
+                res => {
+                  staticinfo = [];
+                  console.log(res.data);
+                  for (let i = 0; i < res.data.length; i++) {
+                    const info = {name: '', value: []};
+                    info.name = res.data[i].name;
+                    info.value.push(res.data[i].lng);
+                    info.value.push(res.data[i].lat);
+                    info.value.push(res.data[i].station_No);
+                    info.value.push(res.data[i].address);
+                    info.value.push(res.data[i].stakeTotalCount);
+                    staticinfo.push(info);
+                  }
+                  console.log(staticinfo);
+                },
+                err => console.log(err),
+                () => {
+                  let param2 = {station_No: '', data_time: '2020-05-24', company: '国网' + n_2[0] + n_2[1] + '供电公司'};
+                  if (n === '葫芦岛市') {
+                    param2 = {station_No: '', data_time: '2020-05-24', company: '国网' + n_2[0] + n_2[1] + n_2[2] + '供电公司'};
+                  }
+                  console.log(param2);
+                  _this.commonService.station(param2)
+                    .subscribe(
+                      res => {
+                        console.log(res.data);
+                        for (let i = 0; i < res.data.length; i++) {
+                          for (let j = 0; j < staticinfo.length; j++) {
+                            if (staticinfo[j].value[2] === res.data[i].station_No) {
+                              staticinfo[j].value.push(res.data[i].data_time);
+                              staticinfo[j].value.push(res.data[i].today_usage);
+                              staticinfo[j].value.push(res.data[i].today_amount);
+                              staticinfo[j].value.push(res.data[i].today_times);
+                              staticinfo[j].value.push(res.data[i].today_dur);
+                            }
+                          }
+                        }
+                        console.log(staticinfo);
+                        o.tooltip = {
+                          trigger: 'item',
+                          formatter(params) {
+                            let s = '';
+                            s += '充电站名称: ' + params.name + '<br>';
+                            s += '充电站编码: ' + params.value[2] + '<br>';
+                            s += '充电站地址: ' + params.value[3] + '<br>';
+                            s += '充电桩数量: ' + params.value[4] + '<br>';
+                            s += '日期: ' + params.value[5] + '<br>';
+                            s += '用电量（千瓦时）: ' + params.value[6].toFixed(3) + '<br>';
+                            s += '消费金额（元）: ' + params.value[7] + '<br>';
+                            s += '充电次数: ' + params.value[8] + '<br>';
+                            s += '充电时间（小时） ' + params.value[9].toFixed(3) + '<br>';
+                            return s;
+                          }
+                        };
+                        o.series[0] = {
+                          name: '点',
+                          type: 'scatter',
+                          coordinateSystem: 'geo',
+                          symbol: 'pin',
+                          roam: true, // 是否开启平游或缩放
+                          symbolSize(val) {
+                            const a = (maxSize4Pin - minSize4Pin) / (max - min);
+                            let b = minSize4Pin - a * min;
+                            b = maxSize4Pin - a * max;
+                            return a * val[4] + b;
+                          },
+                          label: {
+                            normal: {
+                              formatter: '{@[4]}',
+                              show: false,
+                              textStyle: {
+                                color: '#fff',
+                                fontSize: 9,
+                              }
+                            }
+                          },
+                          itemStyle: {
+                            normal: {
+                              color: '#FF86A6', // 标志气泡颜色
+                            }
+                          },
+                          zlevel: 6,
+                          data: staticinfo,
+                        };
+                        o.geo.map = n;
+                        o.geo.zoom = 0.4;
+                        i.clear();
+                        i.setOption(o);
+                        this.zoomAnimation();
+                        opt.callback(n, o, i);
+                      }
+                    );
+                });
+          }
         },
-
         /**
          * name 地图名
          **/
-        createBreadcrumb: function(name){
-          var cityToPinyin = {
-            "沈阳市": "shenyang",
-            "铁岭市": "tieling",
-            "抚顺市": "fushun",
-            "阜新市": "fuxin",
-            "朝阳市": "chaoyang",
-            "葫芦岛市": "huludao",
-            "锦州市": "jinzhou",
-            "盘锦市": "panjin",
-            "鞍山市": "anshan",
-            "辽阳市": "liaoyang",
-            "本溪市": "benxi",
-            "营口市": "yingkou",
-            "丹东市": "dandong",
-            "大连市": "dalian"
+          createBreadcrumb(name) {
+          const cityToPinyin = {
+            沈阳市: 'shenyang',
+            铁岭市: 'tieling',
+            抚顺市: 'fushun',
+            阜新市: 'fuxin',
+            朝阳市: 'chaoyang',
+            葫芦岛市: 'huludao',
+            锦州市: 'jinzhou',
+            盘锦市: 'panjin',
+            鞍山市: 'anshan',
+            辽阳市: 'liaoyang',
+            本溪市: 'benxi',
+            营口市: 'yingkou',
+            丹东市: 'dandong',
+            大连市: 'dalian'
           };
-          var breadcrumb = {
+          const breadcrumb = {
             type: 'group',
             id: name,
             left: pos.leftCur + pos.leftPlus,
@@ -183,8 +353,8 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                 key: name
                 // lineWidth: 2,
               },
-              onclick: function(){
-                var name = this.style.key;
+              onclick() {
+                const name = this.style.key;
                 handleEvents.resetOption(chart, option, name);
               }
             }, {
@@ -197,8 +367,8 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                 fill: style.textColor,
                 font: style.font
               },
-              onclick: function(){
-                var name = this.style.text;
+              onclick() {
+                const name = this.style.text;
                 handleEvents.resetOption(chart, option, name);
               }
             }, {
@@ -207,19 +377,19 @@ export class ZoominComponent implements OnInit, AfterViewInit {
               top: 10,
               style: {
 
-                name: name,
+                name,
                 text: cityToPinyin[name] ? cityToPinyin[name].toUpperCase() : '',
                 textAlign: 'center',
                 fill: style.textColor,
                 font: '12px "Microsoft YaHei", sans-serif',
               },
-              onclick: function(){
+              onclick() {
                 // console.log(this.style);
-                var name = this.style.name;
+                const name = this.style.name;
                 handleEvents.resetOption(chart, option, name);
               }
             }]
-          }
+          };
 
           pos.leftCur += pos.leftPlus;
 
@@ -227,24 +397,26 @@ export class ZoominComponent implements OnInit, AfterViewInit {
         },
 
         // 设置effectscatter
-        initSeriesData: function(data){
-          var temp = [];
-          for(var i = 0;i < data.length;i++){
-            var geoCoord = geoCoordMap[data[i].name];
-            if(geoCoord){
+        // tslint:disable-next-line:no-shadowed-variable
+        initSeriesData(data) {
+          const temp = [];
+          for (let i = 0; i < data.length; i++) {
+            const geoCoord = geoCoordMap[data[i].name];
+            if (geoCoord) {
               temp.push({
                 name: data[i].name,
                 value: geoCoord.concat(data[i].value, data[i].level)
               });
             }
-          };
+          }
+          console.log(temp);
           return temp;
         },
 
-        zoomAnimation: function(){
-          var count = null;
-          var zoom = function(per){
-            if(!count) count = per;
+        zoomAnimation() {
+          let count = null;
+          const zoom = function(per) {
+            if (!count) { count = per; }
             count = count + per;
             // console.log(per,count);
             chart.setOption({
@@ -252,19 +424,31 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                 zoom: count
               }
             });
-            if(count < 1) window.requestAnimationFrame(function(){
+            if (count < 1) { window.requestAnimationFrame(function() {
               zoom(0.2);
             });
+            }
           };
-          window.requestAnimationFrame(function(){
+          window.requestAnimationFrame(function() {
             zoom(0.2);
           });
         }
       };
 
-      var option = {
+      const option = {
         backgroundColor: opt.bgColor,
-        graphic: [{
+        tooltip: {
+          trigger: 'item',
+          formatter(params) {
+            if (typeof(params.value)[2] === 'undefined') {
+              return '充电站数量' + ' : ' + params.value;
+            } else {
+              return '充电站数量' + ' : ' + params.value[2];
+            }
+          }
+        },
+        graphic: [
+          {
           type: 'group',
           left: pos.left,
           top: pos.top - 4,
@@ -311,8 +495,8 @@ export class ZoominComponent implements OnInit, AfterViewInit {
               stroke: 'transparent',
               key: name[0]
             },
-            onclick: function(){
-              var name = this.style.key;
+            onclick() {
+              const name = this.style.key;
               handleEvents.resetOption(chart, option, name);
             }
           }, {
@@ -325,7 +509,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
               fill: style.textColor,
               font: style.font
             },
-            onclick: function(){
+            onclick() {
               handleEvents.resetOption(chart, option, '辽宁');
             }
           }, {
@@ -338,14 +522,15 @@ export class ZoominComponent implements OnInit, AfterViewInit {
               fill: style.textColor,
               font: '12px "Microsoft YaHei", sans-serif',
             },
-            onclick: function(){
+            onclick() {
               handleEvents.resetOption(chart, option, '辽宁');
             }
           }]
-        }],
+        }
+        ],
         geo: {
           map: opt.mapName,
-          // roam: true,
+          roam: true,
           zoom: 1,
           label: {
             normal: {
@@ -389,8 +574,8 @@ export class ZoominComponent implements OnInit, AfterViewInit {
               borderWidth: 0
             }
           },
-          regions: opt.activeArea.map(function(item){
-            if(typeof item !== 'string'){
+          regions: opt.activeArea.map(function(item) {
+            if (typeof item !== 'string') {
               return {
                 name: item.name,
                 itemStyle: {
@@ -406,8 +591,8 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                     }
                   }
                 }
-              }
-            }else{
+              };
+            } else {
               return {
                 name: item,
                 itemStyle: {
@@ -416,42 +601,51 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                     areaColor: '#389BB7'
                   }
                 }
-              }
+              };
             }
           })
         },
-        series: [{
-          type: 'effectScatter',
-          coordinateSystem: 'geo',
-          // symbol: 'diamond',
-          showEffectOn: 'render',
-          rippleEffect: {
-            period: 15,
-            scale: 6,
-            brushType: 'fill'
-          },
-          hoverAnimation: true,
-          itemStyle: {
-            normal: {
-              color: function(params){
-                return levelColorMap[params.value[3]];
-              },
-              shadowBlur: 10,
-              shadowColor: '#333'
-            }
-          },
-          data: handleEvents.initSeriesData(opt.data)
-        }]
+        series: [
+          {
+            name: '点',
+            type: 'scatter',
+            coordinateSystem: 'geo',
+            symbol: 'pin',
+            symbolSize(val) {
+              const a = (maxSize4Pin - minSize4Pin) / (max - min);
+              let b = minSize4Pin - a * min;
+              b = maxSize4Pin - a * max;
+              return a * val[2] + b;
+            },
+            label: {
+              normal: {
+                formatter: '{@[2]}',
+                show: true,
+                textStyle: {
+                  color: '#fff',
+                  fontSize: 9,
+                }
+              }
+            },
+            itemStyle: {
+              normal: {
+                color: '#FF86A6', // 标志气泡颜色
+              }
+            },
+            zlevel: 6,
+            data: convertData(data),
+          }
+          ]
       };
 
       chart.setOption(option);
       // 添加事件
-      chart.on('click', function(params){
-        var _self = this;
-        if(opt.goDown && params.name !== name[idx]){
-          if(cityMap[params.name]){
-            var url = cityMap[params.name];
-            $.get(url, function(response){
+      chart.on('click', function(params) {
+        const _self = this;
+        if (opt.goDown && params.name !== name[idx]) {
+          if (cityMap[params.name]) {
+            const url = cityMap[params.name];
+            $.get(url, function(response) {
               // console.log(response);
               curGeoJson = response;
               echarts.registerMap(params.name, response);
@@ -461,13 +655,13 @@ export class ZoominComponent implements OnInit, AfterViewInit {
         }
       });
 
-      chart.setMap = function(mapName){
-        var _self = this;
-        if(mapName.indexOf('市') < 0) mapName = mapName + '市';
-        var citySource = cityMap[mapName];
-        if(citySource){
-          var url = './map/' + citySource + '.json';
-          $.get(url, function(response){
+      chart.setMap = function(mapName) {
+        const _self = this;
+        if (mapName.indexOf('市') < 0) { mapName = mapName + '市'; }
+        const citySource = cityMap[mapName];
+        if (citySource) {
+          // var url = './map/' + citySource + '.json';
+          $.get(citySource, function(response) {
             // console.log(response);
             curGeoJson = response;
             echarts.registerMap(mapName, response);
@@ -480,14 +674,25 @@ export class ZoominComponent implements OnInit, AfterViewInit {
       return chart;
     };
 
-    $.getJSON(liaoning, function(geoJson){
+    $.getJSON(liaoning, function(geoJson) {
       echarts.registerMap('辽宁', geoJson);
-      var myChart = echarts.extendsMap('chart-panel', {
+      geoJson.features.forEach((feature, index) => {
+        const properties = feature.properties;
+        const cp = properties.cp;
+        const name = properties.name;
+
+        geoCoordMap.push({name, cp});
+        // --------注意data是外界ajax请求返回数据，如果要看效果，则将接口修改一下不传入data，下方100为假数据------
+        data.push({name, value: count[name]});
+      });
+      console.log(data);
+      const myChart = echarts.extendsMap('chart-panel', {
         bgColor: '#154e90', // 画布背景色
         mapName: '辽宁',    // 地图名
         goDown: true,       // 是否下钻
+        data: [],
         // 下钻回调
-        callback: function(name, option, instance){
+        callback(name, option, instance) {
           console.log(name, option, instance);
         }
       });
