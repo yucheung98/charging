@@ -29,9 +29,12 @@
         <li nz-menu-item nzMatchRouter (click)="newTab('充电站地图')">
           <a routerLink="/zoomin" (click)="newTab('充电站地图')">充电站地图</a>
         </li>
-      <li nz-menu-item nzMatchRouter (click)="newTab('用电信息')">
-        <a routerLink="/usage" (click)="newTab('用电信息')" >用电信息</a>
+      <li nz-menu-item nzMatchRouter (click)="newTab('分时用电显示')">
+        <a routerLink="/usage" (click)="newTab('分时用电显示')" >分时用电显示</a>
       </li>
+        <li nz-menu-item nzMatchRouter (click)="newTab('用电信息')">
+          <a routerLink="/usage1" (click)="newTab('用电信息')" >用电信息</a>
+        </li>
       </ul>
     </li>
 
@@ -75,7 +78,8 @@
               </div>
             </ng-template>
             <app-zoomin *ngIf="tab =='充电站地图'"></app-zoomin>
-            <app-usage *ngIf="tab =='用电信息'"></app-usage>
+            <app-usage *ngIf="tab =='分时用电显示'"></app-usage>
+            <app-usage1 *ngIf="tab =='用电信息'"></app-usage1>
           </nz-tab>
         </nz-tabset>
       </div>

@@ -9,6 +9,24 @@ import {CommonService} from '../../service/common.service';
 })
 export class ZoominComponent implements OnInit, AfterViewInit {
   @ViewChild('map', null) map: any;
+  isVisible = false;
+  option_usage: {};
+  option_amount: {};
+  option_times: {};
+  option_dur: {};
+  showModal(): void {
+    this.isVisible = true;
+  }
+
+  handleOk(): void {
+    console.log('Button ok clicked!');
+    this.isVisible = false;
+  }
+
+  handleCancel(): void {
+    console.log('Button cancel clicked!');
+    this.isVisible = false;
+  }
   constructor(private commonService: CommonService) { }
 
   ngOnInit() {
@@ -29,9 +47,24 @@ export class ZoominComponent implements OnInit, AfterViewInit {
       铁岭市: 88,
       朝阳市: 18,
       葫芦岛市: 45};
+    const citylist = ['沈阳市',
+      '大连市',
+      '鞍山市',
+      '抚顺市',
+      '本溪市',
+      '丹东市',
+      '锦州市',
+      '营口市',
+      '阜新市',
+      '辽阳市',
+      '盘锦市',
+      '铁岭市',
+      '朝阳市',
+      '葫芦岛市'];
     const geoCoordMap = [];
     const data = [];
     let staticinfo = [];
+    let usageinfo = { data_time: [], today_usage: [], today_amount: [], today_times: [], today_dur: []};
     const map: any = this.map.nativeElement;
     const liaoning = 'assets/map/json/province/liaoning.json';
     const shenyang = 'assets/map//liaoning/沈阳市.json';
@@ -238,81 +271,363 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                 },
                 err => console.log(err),
                 () => {
-                  let param2 = {station_No: '', data_time: '2020-05-24', company: '国网' + n_2[0] + n_2[1] + '供电公司'};
-                  if (n === '葫芦岛市') {
-                    param2 = {station_No: '', data_time: '2020-05-24', company: '国网' + n_2[0] + n_2[1] + n_2[2] + '供电公司'};
-                  }
-                  console.log(param2);
-                  _this.commonService.station(param2)
-                    .subscribe(
-                      res => {
-                        console.log(res.data);
-                        for (let i = 0; i < res.data.length; i++) {
-                          for (let j = 0; j < staticinfo.length; j++) {
-                            if (staticinfo[j].value[2] === res.data[i].station_No) {
-                              staticinfo[j].value.push(res.data[i].data_time);
-                              staticinfo[j].value.push(res.data[i].today_usage);
-                              staticinfo[j].value.push(res.data[i].today_amount);
-                              staticinfo[j].value.push(res.data[i].today_times);
-                              staticinfo[j].value.push(res.data[i].today_dur);
-                            }
-                          }
+                  o.tooltip = {
+                    trigger: 'item',
+                    formatter(params) {
+                      let s = '';
+                      s += '充电站名称: ' + params.name + '<br>';
+                      s += '充电站编码: ' + params.value[2] + '<br>';
+                      s += '充电站地址: ' + params.value[3] + '<br>';
+                      s += '充电桩数量: ' + params.value[4] + '<br>';
+                      // s += '日期: ' + params.value[5] + '<br>';
+                      // s += '用电量（千瓦时）: ' + params.value[6].toFixed(3) + '<br>';
+                      // s += '消费金额（元）: ' + params.value[7] + '<br>';
+                      // s += '充电次数: ' + params.value[8] + '<br>';
+                      // s += '充电时间（小时） ' + params.value[9].toFixed(3) + '<br>';
+                      return s;
+                    }
+                  };
+                  o.series[0] = {
+                    name: '点',
+                    type: 'scatter',
+                    coordinateSystem: 'geo',
+                    symbol: 'pin',
+                    roam: true, // 是否开启平游或缩放
+                    symbolSize(val) {
+                      const a = (maxSize4Pin - minSize4Pin) / (max - min);
+                      let b = minSize4Pin - a * min;
+                      b = maxSize4Pin - a * max;
+                      return a * val[4] + b;
+                    },
+                    label: {
+                      normal: {
+                        formatter: '{@[4]}',
+                        show: false,
+                        textStyle: {
+                          color: '#fff',
+                          fontSize: 9,
                         }
-                        console.log(staticinfo);
-                        o.tooltip = {
-                          trigger: 'item',
-                          formatter(params) {
-                            let s = '';
-                            s += '充电站名称: ' + params.name + '<br>';
-                            s += '充电站编码: ' + params.value[2] + '<br>';
-                            s += '充电站地址: ' + params.value[3] + '<br>';
-                            s += '充电桩数量: ' + params.value[4] + '<br>';
-                            s += '日期: ' + params.value[5] + '<br>';
-                            s += '用电量（千瓦时）: ' + params.value[6].toFixed(3) + '<br>';
-                            s += '消费金额（元）: ' + params.value[7] + '<br>';
-                            s += '充电次数: ' + params.value[8] + '<br>';
-                            s += '充电时间（小时） ' + params.value[9].toFixed(3) + '<br>';
-                            return s;
-                          }
-                        };
-                        o.series[0] = {
-                          name: '点',
-                          type: 'scatter',
-                          coordinateSystem: 'geo',
-                          symbol: 'pin',
-                          roam: true, // 是否开启平游或缩放
-                          symbolSize(val) {
-                            const a = (maxSize4Pin - minSize4Pin) / (max - min);
-                            let b = minSize4Pin - a * min;
-                            b = maxSize4Pin - a * max;
-                            return a * val[4] + b;
-                          },
-                          label: {
-                            normal: {
-                              formatter: '{@[4]}',
-                              show: false,
-                              textStyle: {
-                                color: '#fff',
-                                fontSize: 9,
-                              }
-                            }
-                          },
-                          itemStyle: {
-                            normal: {
-                              color: '#FF86A6', // 标志气泡颜色
-                            }
-                          },
-                          zlevel: 6,
-                          data: staticinfo,
-                        };
-                        o.geo.map = n;
-                        o.geo.zoom = 0.4;
-                        i.clear();
-                        i.setOption(o);
-                        this.zoomAnimation();
-                        opt.callback(n, o, i);
                       }
-                    );
+                    },
+                    itemStyle: {
+                      normal: {
+                        color: '#FF86A6', // 标志气泡颜色
+                      }
+                    },
+                    zlevel: 6,
+                    data: staticinfo,
+                  };
+                  o.geo.map = n;
+                  o.geo.zoom = 0.4;
+                  i.clear();
+                  i.setOption(o);
+                  i.on('click', function(params) {
+                    console.log(params.name);
+                    if (!citylist.includes(params.name)) {
+                      let param2 = {station_No: params.value[2], data_time: '', company: ''};
+                      console.log(param2);
+                      _this.commonService.station(param2)
+                        .subscribe(
+                          res => {
+                            console.log(res.data);
+                            usageinfo = { data_time: [], today_usage: [], today_amount: [], today_times: [], today_dur: []};
+                            for (let i = 0; i < res.data.length; i++) {
+                              usageinfo.data_time.push(res.data[i].data_time);
+                              usageinfo.today_usage.push(res.data[i].today_usage);
+                              usageinfo.today_amount.push(res.data[i].today_amount);
+                              usageinfo.today_times.push(res.data[i].today_times);
+                              usageinfo.today_dur.push(res.data[i].today_dur);
+                            }
+                            console.log(usageinfo);
+                            _this.option_usage = {
+                              // color: ['#07c2d3',  '#99cc33'],
+                              title: {
+                                // text: '辽宁省GDP发展趋势'
+                              },
+                              tooltip : {
+                                trigger: 'axis',
+                                axisPointer : {
+                                  type : 'shadow'
+                                }
+                              },
+                              legend: {
+                                // right : '15%',
+                                y: '20px',
+                                data: ['用电量(千瓦时)']
+                              },
+                              grid: {
+                                left: '6%',
+                                right: '6%',
+                                bottom: '4%',
+                                containLabel: true
+                              },
+                              xAxis:  {
+                                type: 'category',
+                                // name: '季度',
+                                nameLocation: 'middle',
+                                nameGap: 30,
+                                splitLine: {
+                                  show: false
+                                },
+                                axisLabel: {
+                                  interval: 1
+                                },
+                                data: usageinfo.data_time
+                              },
+                              yAxis: [
+                                {
+                                  type: 'value',
+                                  scale: true,
+                                  name: '用电量(千瓦时)',
+                                  nameLocation: 'middle',
+                                  nameGap: 30,
+                                  // min: 800,
+                                  // max: 1500,
+                                  // interval: 100,
+                                  axisLabel: {
+                                    formatter: '{value}'
+                                  },
+                                  splitLine: {
+                                    show: false
+                                  }
+                                }
+                              ],
+                              series: [
+                                {
+                                  name:  '用电量(千瓦时)',
+                                  type: 'line',
+                                  smooth: true,
+                                  // type: 'bar',
+                                  // barWidth: '50%',
+                                  // tslint:disable-next-line:max-line-length
+                                  // data: [1336.62,	1305.59,	1386.17,	1342.4,	1408.00,	976.79,	1286.37,	1325.82,	1443.85]
+                                  data: usageinfo.today_usage
+                                }
+                              ]
+                            };
+                            _this.option_amount = {
+                              // color: ['#07c2d3',  '#99cc33'],
+                              title: {
+                                // text: '辽宁省GDP发展趋势'
+                              },
+                              tooltip : {
+                                trigger: 'axis',
+                                axisPointer : {
+                                  type : 'shadow'
+                                }
+                              },
+                              legend: {
+                                // right : '15%',
+                                y: '20px',
+                                data: ['消费金额（元）']
+                              },
+                              grid: {
+                                left: '6%',
+                                right: '6%',
+                                bottom: '4%',
+                                containLabel: true
+                              },
+                              xAxis:  {
+                                type: 'category',
+                                // name: '季度',
+                                nameLocation: 'middle',
+                                nameGap: 30,
+                                splitLine: {
+                                  show: false
+                                },
+                                axisLabel: {
+                                  interval: 1
+                                },
+                                data: usageinfo.data_time
+                              },
+                              yAxis: [
+                                {
+                                  type: 'value',
+                                  scale: true,
+                                  name: '消费金额（元）',
+                                  nameLocation: 'middle',
+                                  nameGap: 40,
+                                  // min: 1000,
+                                  // max: 2000,
+                                  // interval: 200,
+                                  axisLabel: {
+                                    formatter: '{value}'
+                                  },
+                                  splitLine: {
+                                    show: false
+                                  }
+                                },
+                              ],
+                              series: [
+                                {
+                                  name: '消费金额（元）',
+                                  type: 'line',
+                                  smooth: true,
+                                  // tslint:disable-next-line:max-line-length
+                                  // data: [1582.74,	1554.56,	1617.79,	1595.32,	1696.59,	1154.40,	1538.47,	1624.42,	1773.63]
+                                  data : usageinfo.today_amount
+                                },
+                              ]
+                            };
+                            _this.option_times = {
+                              // color: ['#07c2d3',  '#99cc33'],
+                              title: {
+                                // text: '辽宁省GDP发展趋势'
+                              },
+                              tooltip : {
+                                trigger: 'axis',
+                                axisPointer : {
+                                  type : 'shadow'
+                                }
+                              },
+                              legend: {
+                                // right : '15%',
+                                y: '20px',
+                                data: ['充电次数总和']
+                              },
+                              grid: {
+                                left: '6%',
+                                right: '6%',
+                                bottom: '4%',
+                                containLabel: true
+                              },
+                              xAxis:  {
+                                type: 'category',
+                                // name: '季度',
+                                nameLocation: 'middle',
+                                nameGap: 30,
+                                splitLine: {
+                                  show: false
+                                },
+                                axisLabel: {
+                                  interval: 1
+                                },
+                                data: usageinfo.data_time
+                                // data: [
+                                //   '2020-05-22',
+                                //   '2020-05-24',
+                                //   '2020-05-25',
+                                //   '2020-05-26',
+                                //   '2020-05-27',
+                                //   '2020-05-28',
+                                //   '2020-05-29',
+                                //   '2020-05-30',
+                                //   '2020-05-31'
+                                // ]
+                              },
+                              yAxis: [
+                                {
+                                  type: 'value',
+                                  name: '充电次数总和',
+                                  nameLocation: 'middle',
+                                  nameGap: 50,
+                                  scale: true,
+                                  // min: 50,
+                                  // max: 200,
+                                  // interval: 50,
+                                  axisLabel: {
+                                    formatter: '{value}'
+                                  },
+                                  splitLine: {
+                                    show: false
+                                  }
+                                }
+                              ],
+                              series: [
+                                {
+                                  name:  '充电次数总和',
+                                  type: 'line',
+                                  smooth: true,
+                                  // type: 'bar',
+                                  // barWidth: '50%',
+                                  // tslint:disable-next-line:max-line-length
+                                  // data: [1336.62,	1305.59,	1386.17,	1342.4,	1408.00,	976.79,	1286.37,	1325.82,	1443.85]
+                                  data: usageinfo.today_times
+                                }
+                              ]
+                            };
+                            _this.option_dur = {
+                              // color: ['#07c2d3',  '#99cc33'],
+                              title: {
+                                // text: '辽宁省GDP发展趋势'
+                              },
+                              tooltip : {
+                                trigger: 'axis',
+                                axisPointer : {
+                                  type : 'shadow'
+                                }
+                              },
+                              legend: {
+                                // right : '15%',
+                                y: '20px',
+                                data: ['充电时间总和（小时）']
+                              },
+                              grid: {
+                                left: '6%',
+                                right: '6%',
+                                bottom: '4%',
+                                containLabel: true
+                              },
+                              xAxis:  {
+                                type: 'category',
+                                // name: '季度',
+                                nameLocation: 'middle',
+                                nameGap: 30,
+                                splitLine: {
+                                  show: false
+                                },
+                                axisLabel: {
+                                  interval: 1
+                                },
+                                data: usageinfo.data_time
+                                // data: [
+                                //   '2020-05-22',
+                                //   '2020-05-24',
+                                //   '2020-05-25',
+                                //   '2020-05-26',
+                                //   '2020-05-27',
+                                //   '2020-05-28',
+                                //   '2020-05-29',
+                                //   '2020-05-30',
+                                //   '2020-05-31'
+                                // ]
+                              },
+                              yAxis: [
+                                {
+                                  type: 'value',
+                                  name: '充电时间总和（小时）',
+                                  nameLocation: 'middle',
+                                  nameGap: 40,
+                                  scale: true,
+                                  // min: 100,
+                                  // max: 400,
+                                  // interval: 100,
+                                  axisLabel: {
+                                    formatter: '{value}'
+                                  },
+                                  splitLine: {
+                                    show: false
+                                  }
+                                },
+                              ],
+                              series: [
+                                {
+                                  name: '充电时间总和（小时）',
+                                  type: 'line',
+                                  smooth: true,
+                                  // tslint:disable-next-line:max-line-length
+                                  // data: [1582.74,	1554.56,	1617.79,	1595.32,	1696.59,	1154.40,	1538.47,	1624.42,	1773.63]
+                                  data: usageinfo.today_dur
+                                },
+                              ]
+                            };
+                            _this.isVisible = true;
+                          }
+                        );
+                    }
+                  });
+                  this.zoomAnimation();
+                  // opt.callback(n, o, i);
                 });
           }
         },
