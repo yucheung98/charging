@@ -10,6 +10,7 @@ import {CommonService} from '../../service/common.service';
 export class ZoominComponent implements OnInit, AfterViewInit {
   @ViewChild('map', null) map: any;
   isVisible = false;
+  station_clicked: any;
   option_usage: {};
   option_amount: {};
   option_times: {};
@@ -33,20 +34,20 @@ export class ZoominComponent implements OnInit, AfterViewInit {
   }
   ngAfterViewInit(): void {
     const _this = this;
-    const count = {沈阳市: 125,
-      大连市: 235,
-      鞍山市: 12,
-      抚顺市: 23,
-      本溪市: 8,
-      丹东市: 7,
-      锦州市: 15,
-      营口市: 11,
-      阜新市: 12,
-      辽阳市: 11,
-      盘锦市: 15,
-      铁岭市: 88,
-      朝阳市: 18,
-      葫芦岛市: 45};
+    const count = {沈阳市: [],
+      大连市: [],
+      鞍山市: [],
+      抚顺市: [],
+      本溪市: [],
+      丹东市: [],
+      锦州市: [],
+      营口市: [],
+      阜新市: [],
+      辽阳市: [],
+      盘锦市: [],
+      铁岭市: [],
+      朝阳市: [],
+      葫芦岛市: []};
     const citylist = ['沈阳市',
       '大连市',
       '鞍山市',
@@ -200,11 +201,10 @@ export class ZoominComponent implements OnInit, AfterViewInit {
             o.tooltip = {
               trigger: 'item',
               formatter(params) {
-                if (typeof (params.value)[2] === 'undefined') {
-                  return '充电站数量' + ' : ' + params.value;
-                } else {
-                  return '充电站数量' + ' : ' + params.value[2];
-                }
+                let s = '';
+                s += '充电站数量: ' + params.value[2] + '<br>';
+                s += '充电桩数量: ' + params.value[3] + '<br>';
+                return s;
               }
             };
             o.series[0] = {
@@ -324,6 +324,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                   i.on('click', function(params) {
                     console.log(params.name);
                     if (!citylist.includes(params.name)) {
+                      _this.station_clicked = params.name;
                       let param2 = {station_No: params.value[2], data_time: '', company: ''};
                       console.log(param2);
                       _this.commonService.station(param2)
@@ -370,7 +371,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                                   show: false
                                 },
                                 axisLabel: {
-                                  interval: 1
+                                  interval: 'auto'
                                 },
                                 data: usageinfo.data_time
                               },
@@ -436,7 +437,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                                   show: false
                                 },
                                 axisLabel: {
-                                  interval: 1
+                                  interval: 'auto'
                                 },
                                 data: usageinfo.data_time
                               },
@@ -500,7 +501,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                                   show: false
                                 },
                                 axisLabel: {
-                                  interval: 1
+                                  interval: 'auto'
                                 },
                                 data: usageinfo.data_time
                                 // data: [
@@ -577,7 +578,7 @@ export class ZoominComponent implements OnInit, AfterViewInit {
                                   show: false
                                 },
                                 axisLabel: {
-                                  interval: 1
+                                  interval: 'auto'
                                 },
                                 data: usageinfo.data_time
                                 // data: [
@@ -755,11 +756,10 @@ export class ZoominComponent implements OnInit, AfterViewInit {
         tooltip: {
           trigger: 'item',
           formatter(params) {
-            if (typeof(params.value)[2] === 'undefined') {
-              return '充电站数量' + ' : ' + params.value;
-            } else {
-              return '充电站数量' + ' : ' + params.value[2];
-            }
+            let s = '';
+            s += '充电站数量: ' + params.value[2] + '<br>';
+            s += '充电桩数量: ' + params.value[3] + '<br>';
+            return s;
           }
         },
         graphic: [
@@ -991,26 +991,40 @@ export class ZoominComponent implements OnInit, AfterViewInit {
 
     $.getJSON(liaoning, function(geoJson) {
       echarts.registerMap('辽宁', geoJson);
-      geoJson.features.forEach((feature, index) => {
-        const properties = feature.properties;
-        const cp = properties.cp;
-        const name = properties.name;
+      // 获取station_count
+      _this.commonService.station_count({level: 'City'})
+        .subscribe(
+          res => {
+            console.log(res.data);
+            for (let i = 0; i < res.data.length; i++) {
+              count[res.data[i].CompanyName] = [res.data[i].Station_Count, res.data[i].Stake_Count];
+            }
+            console.log(count);
+          },
+          err => console.log(err),
+          () => {
+            geoJson.features.forEach((feature, index) => {
+              const properties = feature.properties;
+              const cp = properties.cp;
+              const name = properties.name;
 
-        geoCoordMap.push({name, cp});
-        // --------注意data是外界ajax请求返回数据，如果要看效果，则将接口修改一下不传入data，下方100为假数据------
-        data.push({name, value: count[name]});
-      });
-      console.log(data);
-      const myChart = echarts.extendsMap('chart-panel', {
-        bgColor: '#154e90', // 画布背景色
-        mapName: '辽宁',    // 地图名
-        goDown: true,       // 是否下钻
-        data: [],
-        // 下钻回调
-        callback(name, option, instance) {
-          console.log(name, option, instance);
-        }
-      });
+              geoCoordMap.push({name, cp});
+              // --------注意data是外界ajax请求返回数据，如果要看效果，则将接口修改一下不传入data，下方100为假数据------
+              data.push({name, value: [count[name][0], count[name][1]]});
+            });
+            console.log(data);
+            const myChart = echarts.extendsMap('chart-panel', {
+              bgColor: '#154e90', // 画布背景色
+              mapName: '辽宁',    // 地图名
+              goDown: true,       // 是否下钻
+              data: [],
+              // 下钻回调
+              callback(name, option, instance) {
+                console.log(name, option, instance);
+              }
+            });
+          }
+        );
     });
   }
 }

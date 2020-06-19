@@ -15,7 +15,7 @@ export class UsageComponent implements OnInit {
   listOfData1: any;
   dataSetList1 = [];
   pageIndex = 1;
-  pageSize = 10;
+  pageSize = 14;
   searchData(): void {
     this.dataSetList = this.listOfData.slice((this.pageIndex - 1) * this.pageSize, (this.pageIndex) * this.pageSize);
   }

@@ -20,8 +20,8 @@ export class Usage1Component implements OnInit {
   // tslint:disable-next-line:variable-name
   option_company4: {};
   // 提交按钮，选择公司展示数据
-  onSubmitCompany(paramSearch) {
-    const company = {level: 'City', company: paramSearch};
+  onSubmitCompany() {
+    const company = {level: 'City', company: this.selectedCompany};
     console.log(company);
     this.commonService.companyLevel_usage(company)
       .subscribe(
@@ -67,7 +67,7 @@ export class Usage1Component implements OnInit {
                   show: false
                 },
                 axisLabel: {
-                  interval: 1
+                  interval: 'auto'
                 },
                 data: this.companyUsage.data_time
               },
@@ -124,7 +124,7 @@ export class Usage1Component implements OnInit {
                   show: false
                 },
                 axisLabel: {
-                  interval: 1
+                  interval: 'auto'
                 },
                 data: this.companyUsage.data_time
               },
@@ -182,7 +182,7 @@ export class Usage1Component implements OnInit {
                   show: false
                 },
                 axisLabel: {
-                  interval: 1
+                  interval: 'auto'
                 },
                 data: this.companyUsage.data_time
               },
@@ -239,7 +239,7 @@ export class Usage1Component implements OnInit {
                   show: false
                 },
                 axisLabel: {
-                  interval: 1
+                  interval: 'auto'
                 },
                 data: this.companyUsage.data_time
               },
@@ -292,7 +292,7 @@ export class Usage1Component implements OnInit {
           }
           this.selectedCompany = this.companylist[0];
           console.log('companylist:   ' + this.companylist);
-          this.onSubmitCompany(this.selectedCompany);
+          this.onSubmitCompany();
         }
       );
 

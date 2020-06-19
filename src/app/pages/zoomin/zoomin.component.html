@@ -1,5 +1,5 @@
 <div #map style="width: 100%; height: 720px;"></div>
-<nz-modal nzWidth="1200px" [(nzVisible)]="isVisible" nzTitle="用电信息" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()">
+<nz-modal nzWidth="1200px" [(nzVisible)]="isVisible" nzTitle="{{station_clicked}}  用电信息" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()">
   <div class="gutter-example">
     <div nz-row [nzGutter]="24">
       <div nz-col class="gutter-row"  [nzSpan]="12">
